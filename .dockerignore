@@ -1,0 +1,12 @@
+.idea/*
+factories/*
+features/*
+log/*
+spec/*
+tmp/*
+*.env*
+.rpec
+.rubocop*
+.simplecov
+docker-compose.yml
+Guardfile

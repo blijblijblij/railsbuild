@@ -1,0 +1,34 @@
+FROM ruby:2.5.1
+
+MAINTAINER Rogier Wessel <rogier@blijblijblij.com>
+
+# throw errors if Gemfile has been modified since Gemfile.lock
+RUN apt-get update && apt-get install -y postgresql-client zsh
+RUN bundle config --global frozen 1
+
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+COPY Gemfile /usr/src/app/
+COPY Gemfile.lock /usr/src/app/
+RUN bundle update || bundle install --no-deployment --jobs 20 --retry 5 --without development test
+
+COPY . /usr/src/app
+
+# Set Rails to run in production
+ENV RAILS_ENV production
+ENV RACK_ENV production
+
+# Precompile Rails assets
+RUN SECRET_KEY_BASE=1 RAILS_ENV=production rails assets:precompile
+
+ADD server.sh /server.sh
+RUN chmod +x /server.sh
+
+# Configure an entry point, so we don't need to specify
+ENTRYPOINT ["/server.sh"]
+
+# The main command to run when the container starts. Also
+# tell the Rails dev server to bind to all interfaces by
+# default.
+# CMD ["rails", "server", "Puma", "-b", "0.0.0.0"]
